@@ -1,0 +1,90 @@
+name: Pingerer
+description: Pause alerts or open a maintenance window while you deploy, then wait until your site is up again.
+author: Pingerer
+branding:
+  icon: activity
+  color: blue
+
+inputs:
+  api_token:
+    description: A Pingerer API token with read and write access. Keep it in a secret.
+    required: true
+  action:
+    description: "pause, resume, maintenance-start, maintenance-end, check-now or wait-until-up."
+    required: true
+  site:
+    description: Sites, by id (site_8xKq2) or host (yourbakery.com). Several can be comma or newline separated.
+    required: false
+    default: ""
+  monitor:
+    description: Monitors, by id (mon_8xKq2). Several can be comma or newline separated. For pause, resume, check-now and wait-until-up.
+    required: false
+    default: ""
+  duration:
+    description: "maintenance-start: how long the window lasts, like 15m or 1h. It ends early with maintenance-end."
+    required: false
+    default: 15m
+  title:
+    description: "maintenance-start: the window's title. maintenance-end without maintenance_window_id ends the in-progress windows with this title."
+    required: false
+    default: Deploy
+  message:
+    description: "maintenance-start: what your status page says about it (optional)."
+    required: false
+    default: ""
+  maintenance_window_id:
+    description: "maintenance-end: the window to end, from maintenance-start's output."
+    required: false
+    default: ""
+  timeout:
+    description: "wait-until-up: how long to wait before failing the workflow, like 5m."
+    required: false
+    default: 5m
+  interval:
+    description: "wait-until-up: how long between checks, like 15s."
+    required: false
+    default: 15s
+  region:
+    description: "check-now and wait-until-up: the region to check from, like fsn (default: each monitor's first)."
+    required: false
+    default: ""
+  account:
+    description: The account (acct_... id), when the token's person has several.
+    required: false
+    default: ""
+  base_url:
+    description: The Pingerer server.
+    required: false
+    default: https://pingerer.com
+
+outputs:
+  maintenance_window_id:
+    description: "maintenance-start: the window it opened (pass it to maintenance-end). maintenance-end: the windows it ended."
+    value: ${{ steps.pingerer.outputs.maintenance_window_id }}
+  status:
+    description: "check-now and wait-until-up: up or down."
+    value: ${{ steps.pingerer.outputs.status }}
+  results:
+    description: "check-now and wait-until-up: each check's result, as JSON."
+    value: ${{ steps.pingerer.outputs.results }}
+
+runs:
+  using: composite
+  steps:
+    - id: pingerer
+      shell: bash
+      run: '"$GITHUB_ACTION_PATH/pingerer.sh"'
+      env:
+        PINGERER_API_TOKEN: ${{ inputs.api_token }}
+        PINGERER_ACTION: ${{ inputs.action }}
+        PINGERER_SITES: ${{ inputs.site }}
+        PINGERER_MONITORS: ${{ inputs.monitor }}
+        PINGERER_DURATION: ${{ inputs.duration }}
+        PINGERER_TITLE: ${{ inputs.title }}
+        PINGERER_MESSAGE: ${{ inputs.message }}
+        PINGERER_MAINTENANCE_WINDOW_ID: ${{ inputs.maintenance_window_id }}
+        PINGERER_TIMEOUT: ${{ inputs.timeout }}
+        PINGERER_INTERVAL: ${{ inputs.interval }}
+        PINGERER_REGION: ${{ inputs.region }}
+        PINGERER_ACCOUNT: ${{ inputs.account }}
+        PINGERER_BASE_URL: ${{ inputs.base_url }}

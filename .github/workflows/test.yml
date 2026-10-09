@@ -1,0 +1,77 @@
+# Tests the action. Not active yet: GitHub only runs workflows from a
+# repository's own .github/workflows, so this runs once the action lives
+# in its own repository (like github.com/pingerer/pingerer-action).
+name: Test
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  script:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: shellcheck pingerer.sh test/run_tests.sh
+        if: runner.os == 'Linux'
+      - run: bash test/run_tests.sh
+
+  # The action itself, as a workflow uses it, against the fake API.
+  action:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Start the fake API
+        run: |
+          python3 test/fake_api.py 18765 2>/tmp/fake_api.log &
+          sleep 1
+
+      - name: Open a maintenance window
+        id: maintenance
+        uses: ./
+        with:
+          api_token: test-token
+          base_url: http://127.0.0.1:18765
+          action: maintenance-start
+          site: yourbakery.com
+          duration: 10m
+
+      - name: Pause a monitor
+        uses: ./
+        with:
+          api_token: test-token
+          base_url: http://127.0.0.1:18765
+          action: pause
+          monitor: mon_1
+
+      - name: Wait until up
+        id: smoke
+        uses: ./
+        with:
+          api_token: test-token
+          base_url: http://127.0.0.1:18765
+          action: wait-until-up
+          site: shop.yourbakery.com
+          timeout: 1m
+          interval: 1s
+
+      - name: End the maintenance window
+        uses: ./
+        with:
+          api_token: test-token
+          base_url: http://127.0.0.1:18765
+          action: maintenance-end
+          maintenance_window_id: ${{ steps.maintenance.outputs.maintenance_window_id }}
+
+      - name: Check the outputs
+        run: |
+          test "${{ steps.maintenance.outputs.maintenance_window_id }}" = mw_1
+          test "${{ steps.smoke.outputs.status }}" = up
+          grep -q "POST /api/v1/maintenance_windows/mw_1/end" /tmp/fake_api.log
