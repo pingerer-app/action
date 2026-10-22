@@ -19,7 +19,7 @@ BASE_URL="${PINGERER_BASE_URL:-https://pingerer.com}"
 BASE_URL="${BASE_URL%/}"
 ACTION="${PINGERER_ACTION:-}"
 TOKEN="${PINGERER_API_TOKEN:-}"
-AVAILABILITY_KINDS='["http","tcp","ping"]'
+AVAILABILITY_KINDS='["http","tcp","ping","smtp"]'
 
 log() { printf '%s\n' "$*" >&2; }
 fail() {
