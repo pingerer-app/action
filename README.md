@@ -165,3 +165,7 @@ This folder is published to github.com/pingerer-app/action by
 `bin/publish-cli` in Pingerer's main repository (`bin/publish-cli action
 v1.0.1` tags a release and moves `v1`). Listing it on the GitHub Marketplace
 is a box to tick when drafting a release there.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
