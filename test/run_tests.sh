@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
-# Tests pingerer.sh against test/fake_api.py: bash test/run_tests.sh
+# Tests the action's work (`pingerer github-action`, in cli-rs/) against
+# test/fake_api.py: bash test/run_tests.sh. PINGERER_BIN picks the binary.
 set -uo pipefail
 
 here="$(cd "$(dirname "$0")" && pwd)"
-script="$here/../pingerer.sh"
+bin="${PINGERER_BIN:-$here/../../cli-rs/target/debug/pingerer}"
+[[ -x "$bin" ]] || { echo "Build the CLI first (cargo build in cli-rs), or set PINGERER_BIN." >&2; exit 1; }
 port="${PORT:-18765}"
 log="$(mktemp)"
 outputs="$(mktemp)"
@@ -21,7 +23,7 @@ done
 run() {
   : >"$outputs"
   out="$(env -i PATH="$PATH" HOME="$HOME" GITHUB_OUTPUT="$outputs" PINGERER_BASE_URL="http://127.0.0.1:$port" \
-    PINGERER_API_TOKEN=test-token PINGERER_INTERVAL=0s "$@" bash "$script" 2>&1)"
+    PINGERER_API_TOKEN=test-token PINGERER_INTERVAL=0s "$@" "$bin" github-action 2>&1)"
   status=$?
 }
 

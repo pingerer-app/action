@@ -1,6 +1,6 @@
 # Tests the action. Not active yet: GitHub only runs workflows from a
 # repository's own .github/workflows, so this runs once the action lives
-# in its own repository (like github.com/pingerer/pingerer-action).
+# in its own repository (github.com/pingerer-app/action).
 name: Test
 
 on:
@@ -19,9 +19,11 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
-      - run: shellcheck pingerer.sh test/run_tests.sh
+      - run: shellcheck install.sh test/run_tests.sh
         if: runner.os == 'Linux'
-      - run: bash test/run_tests.sh
+      # The released pingerer tool, as the action runs it.
+      - run: bash install.sh
+      - run: PINGERER_BIN="$(command -v pingerer)" bash test/run_tests.sh
 
   # The action itself, as a workflow uses it, against the fake API.
   action:

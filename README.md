@@ -5,8 +5,9 @@ your site came back. Pause alerts or open a maintenance window before the
 deploy, end it afterwards, and run a post-deploy smoke check that fails the
 workflow if the site isn't up.
 
-It's a composite action using `curl` and `jq` (both on GitHub's runners), so
-there's nothing to install.
+It downloads the `pingerer` command line tool for the runner (Linux,
+macOS or Windows) from its GitHub Releases and runs it, so there's nothing
+to install. `cli_version` pins a version.
 
 ## Set up
 
@@ -30,7 +31,7 @@ jobs:
 
       - name: Start maintenance
         id: maintenance
-        uses: pingerer/pingerer-action@v1
+        uses: pingerer-app/action@v1
         with:
           api_token: ${{ secrets.PINGERER_TOKEN }}
           action: maintenance-start
@@ -41,7 +42,7 @@ jobs:
       - run: ./deploy.sh
 
       - name: Wait until the site is up
-        uses: pingerer/pingerer-action@v1
+        uses: pingerer-app/action@v1
         with:
           api_token: ${{ secrets.PINGERER_TOKEN }}
           action: wait-until-up
@@ -50,7 +51,7 @@ jobs:
 
       - name: End maintenance
         if: always()
-        uses: pingerer/pingerer-action@v1
+        uses: pingerer-app/action@v1
         with:
           api_token: ${{ secrets.PINGERER_TOKEN }}
           action: maintenance-end
@@ -66,7 +67,7 @@ Pausing stops the checks altogether (nothing is recorded), and resuming
 starts them again:
 
 ```yaml
-      - uses: pingerer/pingerer-action@v1
+      - uses: pingerer-app/action@v1
         with:
           api_token: ${{ secrets.PINGERER_TOKEN }}
           action: pause
@@ -75,7 +76,7 @@ starts them again:
 
       - run: ./deploy.sh
 
-      - uses: pingerer/pingerer-action@v1
+      - uses: pingerer-app/action@v1
         if: always()
         with:
           api_token: ${{ secrets.PINGERER_TOKEN }}
@@ -91,7 +92,7 @@ and fails if any fails. `wait-until-up` keeps checking every `interval` until
 they all pass, and fails the workflow after `timeout`.
 
 ```yaml
-      - uses: pingerer/pingerer-action@v1
+      - uses: pingerer-app/action@v1
         id: smoke
         with:
           api_token: ${{ secrets.PINGERER_TOKEN }}
@@ -124,6 +125,7 @@ monitor's own schedule carries on as usual.
 | `region` | check-now, wait-until-up | | The region to check from, like `fsn` or `iad`. |
 | `account` | all | | The account id (`acct_...`), if the token's person has several. |
 | `base_url` | all | `https://pingerer.com` | Another Pingerer server. |
+| `cli_version` | all | `latest` | The `pingerer` tool's version, like `0.3.0`. |
 
 Subscribers to your status page aren't emailed about a maintenance window
 the action opens.
@@ -138,7 +140,7 @@ the action opens.
 
 ## The same from the command line
 
-The [`pingerer` CLI](../cli) does all of this too, for other CI systems:
+The [`pingerer` CLI](https://github.com/pingerer-app/pingerer) does all of this too, for other CI systems:
 
 ```sh
 pingerer maintenance start --sites yourbakery.com --for 15m   # prints the window's id
@@ -150,7 +152,8 @@ pingerer maintenance end mw_4Tq8
 ## Developing
 
 ```sh
-bash test/run_tests.sh   # runs pingerer.sh against test/fake_api.py
+(cd ../cli-rs && cargo build)
+bash test/run_tests.sh   # runs `pingerer github-action` against test/fake_api.py
 ```
 
 `.github/workflows/test.yml` runs these and the action itself once this
@@ -158,8 +161,7 @@ directory is its own repository.
 
 ### Publishing
 
-To list it on the GitHub Marketplace: put this directory in its own public
-repository (`action.yml` at the root), tag a release `v1.0.0` and move a
-`v1` tag to it, then tick "Publish this Action to the GitHub Marketplace"
-when drafting the release. The examples assume `pingerer/pingerer-action`;
-change them if it lives elsewhere.
+This folder is published to github.com/pingerer-app/action by
+`bin/publish-cli` in Pingerer's main repository (`bin/publish-cli action
+v1.0.1` tags a release and moves `v1`). Listing it on the GitHub Marketplace
+is a box to tick when drafting a release there.

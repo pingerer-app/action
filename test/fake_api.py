@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""A tiny stand-in for Pingerer's API, for testing pingerer.sh without a
+"""A tiny stand-in for Pingerer's API, for testing `pingerer github-action` without a
 server: python3 fake_api.py PORT. Sites yourbakery.com (site_1, with an
 http and an ssl monitor) and shop.yourbakery.com (site_2, whose http
 monitor mon_3 fails its first two test runs). Every request is logged to

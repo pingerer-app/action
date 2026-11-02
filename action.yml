@@ -56,6 +56,10 @@ inputs:
     description: The Pingerer server.
     required: false
     default: https://pingerer.com
+  cli_version:
+    description: The pingerer command line tool's version to run, like 0.3.0 (default the latest).
+    required: false
+    default: latest
 
 outputs:
   maintenance_window_id:
@@ -71,9 +75,14 @@ outputs:
 runs:
   using: composite
   steps:
+    # The pingerer command line tool for this runner, from its GitHub Releases.
+    - shell: bash
+      run: '"$GITHUB_ACTION_PATH/install.sh"'
+      env:
+        PINGERER_CLI_VERSION: ${{ inputs.cli_version }}
     - id: pingerer
       shell: bash
-      run: '"$GITHUB_ACTION_PATH/pingerer.sh"'
+      run: pingerer github-action
       env:
         PINGERER_API_TOKEN: ${{ inputs.api_token }}
         PINGERER_ACTION: ${{ inputs.action }}
