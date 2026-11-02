@@ -12,11 +12,11 @@ permissions:
   contents: read
 
 jobs:
+  # Linux only: this organisation's macOS jobs wait for a runner and are
+  # cancelled. The CLI's own tests cover macOS, and install.sh's macOS case
+  # is tested by running it with RUNNER_OS=macOS on a Mac.
   script:
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-15]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - run: shellcheck install.sh test/run_tests.sh

@@ -37,6 +37,9 @@ class Handler(BaseHTTPRequestHandler):
         self.send_response(status)
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(data)))
+        # This server closes every connection (HTTP/1.0); saying so stops the
+        # client reusing one that's already closed.
+        self.send_header("Connection", "close")
         if status == 429:
             self.send_header("Retry-After", "0")
         self.end_headers()
