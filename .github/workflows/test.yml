@@ -1,6 +1,6 @@
-# Tests the action. Not active yet: GitHub only runs workflows from a
-# repository's own .github/workflows, so this runs once the action lives
-# in its own repository (github.com/pingerer-app/action).
+# Tests the action in its own repository, github.com/pingerer-app/action
+# (bin/publish-cli puts it there): GitHub only runs a repository's own
+# .github/workflows.
 name: Test
 
 on:
